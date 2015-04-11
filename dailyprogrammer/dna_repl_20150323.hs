@@ -106,14 +106,14 @@ pair c = case c of
 split :: Int -> [Char] -> [[Char]]
 split _ [] = []
 split n xs = first : (split n rest)
-             where
-               (first, rest) = splitAt n xs
+  where
+    (first, rest) = splitAt n xs
 
 -- Need to put in checks for START and STOP codons
 get :: [[Char]] -> [Maybe [Char]]
 get [] = []
 get (x:xs) = let val = Map.lookup x myMap
-                    in (val : get xs)
+             in (val : get xs)
 
 -- Since 'getArgs' returns [String], d is a String, or [Char]
 -- Unfortunately, this will print values like [Just "STOP", etc..]
