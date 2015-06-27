@@ -1,3 +1,4 @@
+-- Find the largest palindrome made from the product of 2 3-digit numbers
 intToList :: Int -> [Int]
 intToList = reverse . helper
     where helper 0 = []
