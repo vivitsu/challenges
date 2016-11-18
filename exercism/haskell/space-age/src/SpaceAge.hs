@@ -23,4 +23,4 @@ ageOnEarth :: Float -> Float
 ageOnEarth seconds = seconds / 31557600
 
 ageOn :: Planet -> Float -> Float
-ageOn planet seconds = (ageOnEarth seconds) / (conversionFactor planet Earth)
+ageOn planet seconds = ageOnEarth seconds / conversionFactor planet Earth
