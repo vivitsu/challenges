@@ -2,6 +2,9 @@
  * https://www.reddit.com/r/dailyprogrammer/comments/7r17qr/20180117_challenge_347_intermediate_linear/
  *
  */
+
+// TODO - Handle 32bit input
+
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
