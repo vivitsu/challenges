@@ -2,3 +2,5 @@
 .stack-work
 project/
 target/
+*.exe
+*.obj

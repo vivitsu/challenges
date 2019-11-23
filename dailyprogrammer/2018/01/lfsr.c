@@ -1,84 +1,121 @@
-// https://www.reddit.com/r/dailyprogrammer/comments/7r17qr/20180117_challenge_347_intermediate_linear/
+/*
+ * https://www.reddit.com/r/dailyprogrammer/comments/7r17qr/20180117_challenge_347_intermediate_linear/
+ *
+ */
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
 
-#define TRUE  1
-#define FALSE 0
+typedef struct input {
+    uint32_t num_taps;
+    uint32_t* tap_locations;
+    uint32_t feedback_fn; // XOR (0) or XNOR (1)
+    char* val_str;
+    uint32_t cycles;
+} input;
 
-// SAMPLE INPUT: [0,2] XOR 001 7
-
-// TODO: Print binary number
-// TODO: Input validation needed for input bit string?
-
-// TODO: Limit input bit string to sizeof(char)?
-
-// TODO: It would be more efficient to convert the input string
-// to binary, but it might be easier to do the computations if they are just characters? I dont know.
-
-/*
-char string_to_binary(char* s) {
-  if (s == NULL) return 0;
-
-  char binary = 0;
-  char *ptr = s;
-  int i = 0;
-
-  for (int i = 0; *ptr != '\0'; i++) {
-    if (*ptr == '1') binary | (1 << i);
-    else binary | (0 << i);
-    *ptr++;
-  }
-    
-  return binary;  
-}
-*/
-
-int main(int argc, char *argv[]) {
-
-/*
-  printf("Count of arguments: %d\n", argc);
-
-  printf("Tap locations: %s\n", argv[1]);
-
-  int is_xnor = FALSE;
-
-  if (argc < 4) {
-    printf("Insufficient arguments\n");
-    exit(-1);
-  } else if (argc > 4) {
-    printf("This program accepts only 4 arguments\n");
-    exit(-1);
-  } else {
-    char * feedback_function = argv[2];
-    if (strcmp(feedback_function, "XNOR")) {
-	    is_xnor = TRUE;
+uint32_t get_num_taps(char* tap_loc_str, int len)
+{
+    uint32_t num_taps = 0;
+    // Skip the opening and closing brackets
+    for (int i = 1; i <= len - 2; i++)
+    {
+        if (tap_loc_str[i] == ',')
+        {
+            num_taps++;
+        }
     }
-    
-  }
-*/  
+    num_taps++;
+    printf("Num tap locations: %d\n", num_taps);
+    return num_taps;
+}
 
-  int tap_locations[] = { 0, 2 };
-  char *feedback_function = "XOR";
-  int initial_value = 1;
-  int num_clock_steps = 7;
-  int lfsr = initial_value;
-  int iter = 0;
-  int temp = lfsr;
-  
-  do {
-    printf("%d %d\n", iter, lfsr);
-    temp = (lfsr & 1) << 2;
-    temp  ^= (lfsr & 4);
-    //printf("temp: %d\n", temp);
-    // if (is_xnor) temp = !temp;
-    lfsr >>= 1;
-    //printf("lfsr after 1 right shift: %d\n", lfsr);    
-    lfsr = lfsr | temp;
-    //printf("final lfsr for next iteration: %d\n", lfsr);
-    iter++;
-  } while (iter <= num_clock_steps);
-  
+uint32_t* get_tap_locations(char* tap_loc_str, int len, uint32_t num_taps)
+{
+    uint32_t* tap_locations = (uint32_t*)malloc(sizeof(uint32_t)*num_taps);
+    int k = 0;
+    for (int i = 1; i <= len - 2; i++)
+    {
+        if (tap_loc_str[i] == ',')
+        {
+            continue;
+        }
+        else
+        {
+            tap_locations[k] = tap_loc_str[i] - '0';
+            k++;
+        }
+    }
+    return tap_locations;
+}
 
-  return 0;
+void run_lfsr(input* in)
+{
+    for (int i = 0; i < in->cycles + 1; i++)
+    {
+        printf("%d: %s\n", i, in->val_str);
+        uint32_t tap = in->tap_locations[0];
+        uint32_t curr_lf = in->val_str[tap] - '0';
+        for (int j = 1; j < in->num_taps; j++)
+        {
+            tap = in->tap_locations[j];
+            curr_lf ^=  in->val_str[tap] - '0';
+            if (in->feedback_fn)
+            {
+                curr_lf = !(curr_lf);
+            }
+        }
+
+        for (int k = strlen(in->val_str) - 1; k >= 1; k--)
+        {
+            in->val_str[k] = in->val_str[k-1];
+        }
+        in->val_str[0] = curr_lf + '0';
+    }
+}
+
+input* parse_args(char** argv)
+{
+    input* in = (input*)malloc(sizeof(input)*1);
+    char* tap_loc_str = argv[1];
+    int len = strlen(argv[1]);
+    in->num_taps = get_num_taps(tap_loc_str, len);
+    in->tap_locations = get_tap_locations(tap_loc_str, len, in->num_taps);
+
+    printf("Tap Locations: %s\n", argv[1]);
+    printf("Parsed tap locations: %d", in->tap_locations[0]);
+    for (int i = 1; i < in->num_taps; i++)
+    {
+        printf(",%d", in->tap_locations[i]);
+    }
+    printf("\n");
+    in->feedback_fn = strcmp(argv[2], "XOR") == 0 ? 0 : 1;
+    printf("Feedback Function: %s\n", (in->feedback_fn == 0 ? "XOR" : "XNOR"));
+    char* val_str = (char*)malloc(sizeof(char)*strlen(argv[3]));
+    in->val_str = argv[3];
+    printf("Initial Value: %s\n", in->val_str);
+    in->cycles = atoi(argv[4]);
+    printf("Cycles: %d\n", in->cycles);
+    return in;
+}
+
+int main(int argc, char** argv)
+{
+    if (argc < 5)
+    {
+        printf("Insufficient Arguments. Expected 4, got %d.\n", argc);
+        exit(-1);
+    }
+    else if (argc > 5)
+    {
+        printf("Too many arguments. Expected 4, got %d\n", argc);
+        exit(-1);
+    }
+    else {
+        input* in = parse_args(argv);
+        run_lfsr(in);
+        free(in);
+    }
+    return 0;
 }
