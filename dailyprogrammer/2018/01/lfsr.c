@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 typedef struct input {
     uint32_t num_taps;
